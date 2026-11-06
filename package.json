@@ -1,0 +1,11 @@
+{
+  "name": "llm-cost-planner",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Estimate the monthly bill for an LLM feature, with caching, batch, and routing.",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test"
+  }
+}

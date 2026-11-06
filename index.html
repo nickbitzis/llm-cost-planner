@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LLM Cost Planner</title>
+  <meta name="description" content="Estimate the monthly bill for an LLM feature and see what prompt caching, batch processing, and model routing save.">
+  <link rel="stylesheet" href="src/styles.css">
+</head>
+<body>
+  <header class="top">
+    <div>
+      <h1>LLM Cost Planner</h1>
+      <p class="sub">Estimate the monthly bill for a Claude-powered feature, and see what caching, batching, and routing are each worth.</p>
+    </div>
+    <div class="actions">
+      <button type="button" id="share">Copy share link</button>
+      <button type="button" id="reset" class="ghost">Reset</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <form id="form" class="panel" autocomplete="off">
+      <fieldset>
+        <legend>Workload</legend>
+        <label>Model<select name="model" id="model"></select></label>
+        <label>Tasks per day<input type="number" name="tasksPerDay" min="0" step="100"></label>
+        <label>Model calls per task<input type="number" name="turns" min="1" step="1"></label>
+      </fieldset>
+      <fieldset>
+        <legend>Tokens</legend>
+        <label>Shared prefix<input type="number" name="prefixTokens" min="0" step="500"><span class="field-hint">System prompt, tool definitions, examples. The same on every call.</span></label>
+        <div class="grid2">
+          <label>New input per call<input type="number" name="inputTokens" min="0" step="100"></label>
+          <label>Output per call<input type="number" name="outputTokens" min="0" step="50"></label>
+        </div>
+        <span class="field-hint">Count thinking in the output. Each call re-sends the whole conversation so far.</span>
+      </fieldset>
+      <fieldset>
+        <legend>Savings</legend>
+        <label class="check"><input type="checkbox" name="caching"> Prompt caching</label>
+        <label>Cache lifetime
+          <select name="ttl"><option value="5m">5 minutes (write 1.25x)</option><option value="1h">1 hour (write 2x)</option></select>
+        </label>
+        <label>Tasks sent through the Batch API <output data-for="batchShare"></output>
+          <input type="range" name="batchShare" min="0" max="1" step="0.05">
+        </label>
+        <label>Tasks routed to a cheaper model <output data-for="routeShare"></output>
+          <input type="range" name="routeShare" min="0" max="1" step="0.05">
+        </label>
+        <label>Router model<select name="routeModel" id="routeModel"></select></label>
+      </fieldset>
+      <p class="hint">Prices are per million tokens from Anthropic's published pricing in November 2026, kept in <code>src/llmcost.js</code>. Check the current pricing page before you quote a number.</p>
+    </form>
+
+    <section class="results">
+      <div id="cards" class="cards"></div>
+      <ul id="warnings" class="warnings" aria-live="polite"></ul>
+
+      <div class="panel">
+        <div class="chart-head"><h2>What each optimization is worth</h2></div>
+        <svg id="ladder" role="img" aria-label="Monthly cost as each optimization is added"></svg>
+        <p class="hint" id="ladder-note"></p>
+      </div>
+
+      <div class="two">
+        <div class="panel">
+          <h2>Where the money goes</h2>
+          <table class="items">
+            <thead><tr><th>Line item</th><th class="num">Tokens per task</th><th class="num">Monthly</th></tr></thead>
+            <tbody id="lines"></tbody>
+            <tfoot><tr><th>Total</th><th></th><th class="num" id="lines-total"></th></tr></tfoot>
+          </table>
+        </div>
+        <div class="panel">
+          <h2>Same workload, other models</h2>
+          <table class="items">
+            <thead><tr><th>Model</th><th class="num">Per task</th><th class="num">Monthly</th></tr></thead>
+            <tbody id="models"></tbody>
+          </table>
+          <p class="hint">With your caching and batch settings, without routing. Price is only half the choice: test quality on your own cases first.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">Runs entirely in your browser. Inputs are stored in the page URL so you can share an estimate.</footer>
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>
